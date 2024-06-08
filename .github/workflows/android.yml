@@ -1,0 +1,39 @@
+name: Android
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          validate-wrappers: true
+          gradle-home-cache-cleanup: true
+
+      - name: Build with Gradle
+        run: ./gradlew assembleRelease
+
+      - name: Upload built aar
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat
+          path: compat/build/outputs/aar/*.aar
