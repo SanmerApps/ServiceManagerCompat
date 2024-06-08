@@ -7,6 +7,10 @@ plugins {
 android {
     namespace = "dev.sanmer.su"
 
+    defaultConfig {
+        consumerProguardFile("proguard-rules.pro")
+    }
+
     buildFeatures {
         aidl = true
     }

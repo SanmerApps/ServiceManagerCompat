@@ -1,0 +1,2 @@
+-dontwarn android.**
+-dontwarn com.android.internal.**
