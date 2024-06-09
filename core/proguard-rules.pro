@@ -1,2 +1,3 @@
--dontwarn android.**
--dontwarn com.android.internal.**
+-dontwarn android.app.ActivityThread
+-dontwarn android.os.SELinux
+-dontwarn android.os.ServiceManager
