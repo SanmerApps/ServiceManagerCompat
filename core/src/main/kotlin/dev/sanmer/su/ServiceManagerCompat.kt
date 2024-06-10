@@ -12,6 +12,7 @@ import android.os.Parcel
 import android.os.ServiceManager
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
+import dev.sanmer.su.ClassWrapper.Companion.wrap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -208,15 +209,15 @@ object ServiceManagerCompat {
         true
     }
 
-    fun IServiceManager.addService(clazz: Class<*>) = addService(clazz.name, clazz.name)
+    fun IServiceManager.addService(cls: Class<*>) = addService(cls.name, cls.wrap())
 
-    fun IServiceManager.getService(clazz: Class<*>): IBinder {
-        val binder = getService(clazz.name)
+    fun IServiceManager.getService(cls: Class<*>): IBinder {
+        val binder = getService(cls.name)
         if (binder != null) {
             return binder
         }
 
-        return addService(clazz)
+        return addService(cls)
     }
 
     fun Class<*>.createBy(service: IServiceManager) = service.addService(this)
@@ -230,8 +231,7 @@ object ServiceManagerCompat {
 
         override fun isBinderAlive() = this@proxyBy.isBinderAlive
 
-        override fun queryLocalInterface(descriptor: String) =
-            this@proxyBy.queryLocalInterface(descriptor)
+        override fun queryLocalInterface(descriptor: String) = null
 
         override fun dump(fd: FileDescriptor, args: Array<out String>?) =
             this@proxyBy.dump(fd, args)

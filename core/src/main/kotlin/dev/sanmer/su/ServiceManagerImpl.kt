@@ -27,16 +27,18 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
         return SELinux.getContext()
     }
 
-    override fun addService(name: String, className: String): IBinder? {
-        Log.i(TAG, "addService<$name>: service = $className")
+    override fun addService(name: String, cls: ClassWrapper<*>): IBinder? {
+        Log.i(TAG, "addService<$name>: ${cls.original}")
         runCatching {
-            val clazz = Class.forName(className)
-            val service = clazz.getConstructor().newInstance() as IBinder
-            services[name] = service
-
-            return service
+            val obj = cls.original.getConstructor().newInstance()
+            if (obj is IBinder) {
+                services[name] = obj
+                return obj
+            } else {
+                Log.e(TAG, "addService<$name>: Not an IBinder object")
+            }
         }.onFailure {
-            Log.w(TAG, Log.getStackTraceString(it))
+            Log.e(TAG, Log.getStackTraceString(it))
         }
 
         return null
@@ -45,7 +47,7 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
     override fun getService(name: String): IBinder? {
         return services[name].also {
             if (it == null) {
-                Log.w(TAG, "getService<$name>: service = null")
+                Log.w(TAG, "getService<$name>: Service not found")
             }
         }
     }
@@ -60,14 +62,11 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
             val targetBinder = data.readStrongBinder()
             val targetCode = data.readInt()
             val targetFlags = data.readInt()
-
-            val newData = Parcel.obtain().apply {
-                runCatching {
-                    appendFrom(data, data.dataPosition(), data.dataAvail())
-                }
-            }
+            val newData = Parcel.obtain()
 
             try {
+                newData.appendFrom(data, data.dataPosition(), data.dataAvail())
+
                 val id = Binder.clearCallingIdentity()
                 targetBinder.transact(targetCode, newData, reply, targetFlags)
                 Binder.restoreCallingIdentity(id)
