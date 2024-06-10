@@ -1,6 +1,5 @@
 package dev.sanmer.su
 
-import android.content.Context
 import android.os.Binder
 import android.os.IBinder
 import android.os.Parcel
@@ -9,10 +8,12 @@ import android.system.Os
 import android.util.Log
 import kotlin.system.exitProcess
 
-internal class ServiceManagerImpl(
-    private val context: Context
-) : IServiceManager.Stub() {
-    private val services = mutableMapOf<String, IBinder>()
+internal class ServiceManagerImpl : IServiceManager.Stub() {
+    private val services = hashMapOf<String, IBinder>()
+
+    init {
+        Log.d(TAG, "init: uid = $uid, pid = $pid, context = $seLinuxContext")
+    }
 
     override fun getUid(): Int {
         return Os.getuid()
@@ -26,43 +27,27 @@ internal class ServiceManagerImpl(
         return SELinux.getContext()
     }
 
-    override fun addService(cls: String): Boolean {
-        Log.d(TAG, "addService<$cls>")
-
-        val serviceClass = try {
-            context.classLoader.loadClass(cls)
-        } catch (e: ClassNotFoundException) {
-            Log.w(TAG, "loadClass<$cls>", e)
-            return false
-        }
-
+    override fun addService(name: String, className: String): IBinder? {
+        Log.i(TAG, "addService<$name>: service = $className")
         runCatching {
-            val service = serviceClass.getConstructor(Context::class.java)
-                .newInstance(context) as IBinder
+            val clazz = Class.forName(className)
+            val service = clazz.getConstructor().newInstance() as IBinder
+            services[name] = service
 
-            services[cls] = service
-            return true
-        }
-
-        runCatching {
-            val service = serviceClass.getConstructor()
-                .newInstance() as IBinder
-
-            services[cls] = service
-            return true
+            return service
         }.onFailure {
-            Log.w(TAG, "newInstance<$cls>", it)
+            Log.w(TAG, Log.getStackTraceString(it))
         }
 
-        return false
+        return null
     }
 
-    override fun getService(cls: String): IBinder? {
-        if (!services.contains(cls)) {
-            addService(cls)
+    override fun getService(name: String): IBinder? {
+        return services[name].also {
+            if (it == null) {
+                Log.w(TAG, "getService<$name>: service = null")
+            }
         }
-
-        return services[cls]
     }
 
     override fun destroy() {

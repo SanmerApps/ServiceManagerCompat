@@ -21,63 +21,12 @@ import rikka.shizuku.Shizuku
 import java.io.FileDescriptor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.reflect.KClass
 
 object ServiceManagerCompat {
     private const val TIMEOUT_MILLIS = 15_000L
 
     internal const val BINDER_TRANSACTION = 23373801
-
-    fun IBinder.proxyBy(service: IServiceManager) = object : IBinder {
-        override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
-
-        override fun pingBinder() = this@proxyBy.pingBinder()
-
-        override fun isBinderAlive() = this@proxyBy.isBinderAlive
-
-        override fun queryLocalInterface(descriptor: String) =
-            this@proxyBy.queryLocalInterface(descriptor)
-
-        override fun dump(fd: FileDescriptor, args: Array<out String>?) =
-            this@proxyBy.dump(fd, args)
-
-        override fun dumpAsync(fd: FileDescriptor, args: Array<out String>?) =
-            this@proxyBy.dumpAsync(fd, args)
-
-        override fun linkToDeath(recipient: IBinder.DeathRecipient, flags: Int) =
-            this@proxyBy.linkToDeath(recipient, flags)
-
-        override fun unlinkToDeath(recipient: IBinder.DeathRecipient, flags: Int) =
-            this@proxyBy.unlinkToDeath(recipient, flags)
-
-        override fun transact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
-            val serviceBinder = service.asBinder()
-            val newData = Parcel.obtain()
-
-            try {
-                newData.apply {
-                    writeInterfaceToken(IServiceManager.DESCRIPTOR)
-                    writeStrongBinder(this@proxyBy)
-                    writeInt(code)
-                    writeInt(flags)
-                    appendFrom(data, 0, data.dataSize())
-                }
-
-                serviceBinder.transact(BINDER_TRANSACTION, newData, reply, 0)
-            } finally {
-                newData.recycle()
-            }
-
-            return true
-        }
-    }
-
-    fun IInterface.proxyBy(service: IServiceManager) = asBinder().proxyBy(service)
-
-    fun IServiceManager.proxy(binder: IBinder): IBinder = binder.proxyBy(this)
-
-    fun IServiceManager.proxy(original: IInterface) = proxy(original.asBinder())
-
-    fun IServiceManager.proxy(name: String) = proxy(ServiceManager.getService(name))
 
     interface IProvider {
         val name: String
@@ -238,7 +187,7 @@ object ServiceManagerCompat {
 
         private class Service : RootService() {
             override fun onBind(intent: Intent): IBinder {
-                return ServiceManagerImpl(baseContext)
+                return ServiceManagerImpl()
             }
         }
 
@@ -258,4 +207,68 @@ object ServiceManagerCompat {
     } else {
         true
     }
+
+    fun IServiceManager.addService(clazz: Class<*>) = addService(clazz.name, clazz.name)
+
+    fun IServiceManager.getService(clazz: Class<*>): IBinder {
+        val binder = getService(clazz.name)
+        if (binder != null) {
+            return binder
+        }
+
+        return addService(clazz)
+    }
+
+    fun Class<*>.createBy(service: IServiceManager) = service.addService(this)
+
+    fun KClass<*>.createBy(service: IServiceManager) = service.addService(this.java)
+
+    fun IBinder.proxyBy(service: IServiceManager) = object : IBinder {
+        override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
+
+        override fun pingBinder() = this@proxyBy.pingBinder()
+
+        override fun isBinderAlive() = this@proxyBy.isBinderAlive
+
+        override fun queryLocalInterface(descriptor: String) =
+            this@proxyBy.queryLocalInterface(descriptor)
+
+        override fun dump(fd: FileDescriptor, args: Array<out String>?) =
+            this@proxyBy.dump(fd, args)
+
+        override fun dumpAsync(fd: FileDescriptor, args: Array<out String>?) =
+            this@proxyBy.dumpAsync(fd, args)
+
+        override fun linkToDeath(recipient: IBinder.DeathRecipient, flags: Int) =
+            this@proxyBy.linkToDeath(recipient, flags)
+
+        override fun unlinkToDeath(recipient: IBinder.DeathRecipient, flags: Int) =
+            this@proxyBy.unlinkToDeath(recipient, flags)
+
+        override fun transact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
+            val serviceBinder = service.asBinder()
+            val newData = Parcel.obtain()
+
+            try {
+                newData.apply {
+                    writeInterfaceToken(IServiceManager.DESCRIPTOR)
+                    writeStrongBinder(this@proxyBy)
+                    writeInt(code)
+                    writeInt(flags)
+                    appendFrom(data, 0, data.dataSize())
+                }
+
+                serviceBinder.transact(BINDER_TRANSACTION, newData, reply, 0)
+            } finally {
+                newData.recycle()
+            }
+
+            return true
+        }
+    }
+
+    fun IInterface.proxyBy(service: IServiceManager) = asBinder().proxyBy(service)
+
+    fun IServiceManager.getSystemService(name: String) =
+        ServiceManager.getService(name).proxyBy(this)
 }
