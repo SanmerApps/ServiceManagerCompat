@@ -145,14 +145,12 @@ object ServiceManagerCompat {
         override suspend fun isAvailable() = true
 
         override suspend fun isAuthorized() = suspendCancellableCoroutine { continuation ->
-            Shell.EXECUTOR.submit {
-                runCatching {
-                    Shell.getShell()
-                }.onSuccess {
-                    continuation.resume(true)
-                }.onFailure {
-                    continuation.resume(false)
-                }
+            runCatching {
+                Shell.getShell()
+            }.onSuccess {
+                continuation.resume(true)
+            }.onFailure {
+                continuation.resume(false)
             }
         }
 
