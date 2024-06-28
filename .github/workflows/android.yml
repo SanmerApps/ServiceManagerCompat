@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -30,10 +28,3 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew assembleRelease
-
-      - name: Upload built aar
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: core
-          path: core/build/outputs/aar/*.aar
