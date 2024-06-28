@@ -15,42 +15,39 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
         Log.d(TAG, "init: uid = $uid, pid = $pid, context = $seLinuxContext")
     }
 
-    override fun getUid(): Int {
-        return Os.getuid()
-    }
+    override fun getUid(): Int = Os.getuid()
 
-    override fun getPid(): Int {
-        return Os.getpid()
-    }
+    override fun getPid(): Int = Os.getpid()
 
-    override fun getSELinuxContext(): String {
-        return SELinux.getContext()
-    }
+    override fun getSELinuxContext(): String = SELinux.getContext()
 
-    override fun addService(name: String, cls: ClassWrapper<*>): IBinder? {
-        Log.i(TAG, "addService<$name>: ${cls.original}")
+    override fun bind(cls: ClassWrapper<*>): IBinder? =
         runCatching {
-            val obj = cls.original.getConstructor().newInstance()
-            if (obj is IBinder) {
-                services[name] = obj
-                return obj
-            } else {
-                Log.e(TAG, "addService<$name>: Not an IBinder object")
+            services.getOrPut(cls.original.name) {
+                val binder = cls.original.getConstructor().newInstance()
+                require(binder is IBinder) { "${cls.original} is not IBinder" }
+
+                binder
             }
+
         }.onFailure {
             Log.e(TAG, Log.getStackTraceString(it))
-        }
 
-        return null
-    }
+        }.getOrNull()
 
-    override fun getService(name: String): IBinder? {
-        return services[name].also {
-            if (it == null) {
-                Log.w(TAG, "getService<$name>: Service not found")
+    override fun delegate(cls: ClassWrapper<*>): IBinder? =
+        runCatching {
+            val service = cls.original.getConstructor().newInstance()
+            require(service is IService) { "${cls.original} is not IService" }
+
+            services.getOrPut(service.name) {
+                service.create(this@ServiceManagerImpl)
             }
-        }
-    }
+
+        }.onFailure {
+            Log.e(TAG, Log.getStackTraceString(it))
+
+        }.getOrNull()
 
     override fun destroy() {
         exitProcess(0)

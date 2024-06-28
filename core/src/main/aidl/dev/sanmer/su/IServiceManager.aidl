@@ -7,8 +7,8 @@ interface IServiceManager {
     int getPid() = 1;
     String getSELinuxContext() = 2;
 
-    IBinder addService(String name, in ClassWrapper cls) = 3;
-    IBinder getService(String name) = 4;
+    IBinder bind(in ClassWrapper cls) = 3;
+    IBinder delegate(in ClassWrapper cls) = 4;
 
     void destroy() = 16777114;
 }

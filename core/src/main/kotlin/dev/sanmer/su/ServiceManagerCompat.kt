@@ -22,7 +22,6 @@ import rikka.shizuku.Shizuku
 import java.io.FileDescriptor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.reflect.KClass
 
 object ServiceManagerCompat {
     private const val TIMEOUT_MILLIS = 15_000L
@@ -203,26 +202,15 @@ object ServiceManagerCompat {
 
     suspend fun fromLibSu() = from(LibSuProvider.get())
 
-    fun setHiddenApiExemptions() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        HiddenApiBypass.addHiddenApiExemptions("")
+    fun setHiddenApiExemptions(vararg signaturePrefixes: String) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        HiddenApiBypass.addHiddenApiExemptions(*signaturePrefixes)
     } else {
         true
     }
 
-    fun IServiceManager.addService(cls: Class<*>) = addService(cls.name, cls.wrap())
+    fun IServiceManager.bind(cls: Class<*>): IBinder? = bind(cls.wrap())
 
-    fun IServiceManager.getService(cls: Class<*>): IBinder {
-        val binder = getService(cls.name)
-        if (binder != null) {
-            return binder
-        }
-
-        return addService(cls)
-    }
-
-    fun Class<*>.createBy(service: IServiceManager) = service.addService(this)
-
-    fun KClass<*>.createBy(service: IServiceManager) = service.addService(this.java)
+    fun IServiceManager.delegate(cls: Class<*>): IBinder? = delegate(cls.wrap())
 
     fun IBinder.proxyBy(service: IServiceManager) = object : IBinder {
         override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
