@@ -4,10 +4,13 @@ androidxAnnotation = "1.8.0"
 hiddenApiRefine = "4.4.0"
 kotlin = "2.0.0"
 kotlinxCoroutines = "1.8.1"
-libsu = "5.3.0"
+libsu = "6.0.0"
 shizuku = "13.1.5"
 
 [libraries]
+android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
+kotlin-gradle = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
@@ -18,17 +21,11 @@ rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", ver
 rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 hiddenApiBypass = "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
-timber = "com.jakewharton.timber:timber:5.0.1"
-
-# Dependencies of the included build-logic
-android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-kotlin-gradle = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]
+self-library = { id = "self.library", version = "unspecified" }
+
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "hiddenApiRefine" }
-
-# Plugins defined by this project
-self-library = { id = "self.library", version = "unspecified" }
