@@ -14,7 +14,7 @@ subprojects {
         publications {
             all {
                 group = "dev.sanmer.su"
-                version = "0.1.1"
+                version = "0.1.2"
             }
         }
 
