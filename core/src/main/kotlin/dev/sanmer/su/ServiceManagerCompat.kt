@@ -12,7 +12,6 @@ import android.os.Parcel
 import android.os.ServiceManager
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
-import dev.sanmer.su.ClassWrapper.Companion.wrap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -208,11 +207,7 @@ object ServiceManagerCompat {
         true
     }
 
-    fun IServiceManager.bind(cls: Class<*>): IBinder? = bind(cls.wrap())
-
-    fun IServiceManager.delegate(cls: Class<*>): IBinder? = delegate(cls.wrap())
-
-    fun IBinder.proxyBy(service: IServiceManager) = object : IBinder {
+    fun <T: IBinder> T.proxyBy(service: IServiceManager) = object : IBinder {
         override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
 
         override fun pingBinder() = this@proxyBy.pingBinder()
@@ -255,8 +250,12 @@ object ServiceManagerCompat {
         }
     }
 
-    fun IInterface.proxyBy(service: IServiceManager) = asBinder().proxyBy(service)
+    fun <T: IInterface> T.proxyBy(service: IServiceManager) =
+        asBinder().proxyBy(service)
 
-    fun IServiceManager.getSystemService(name: String) =
+    fun <T: IServiceManager> T.getSystemService(name: String) =
         ServiceManager.getService(name).proxyBy(this)
+
+    fun <T: IServiceManager, S: IService> T.addService(cls: Class<S>): IBinder? =
+        addService(Service(cls))
 }

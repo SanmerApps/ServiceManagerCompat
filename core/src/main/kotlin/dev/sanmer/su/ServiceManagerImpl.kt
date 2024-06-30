@@ -21,13 +21,10 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
 
     override fun getSELinuxContext(): String = SELinux.getContext()
 
-    override fun bind(cls: ClassWrapper<*>): IBinder? =
+    override fun addService(service: Service<*>): IBinder? =
         runCatching {
-            services.getOrPut(cls.original.name) {
-                val binder = cls.original.getConstructor().newInstance()
-                require(binder is IBinder) { "${cls.original} is not IBinder" }
-
-                binder
+            service.create(this).apply {
+                services[service.name] = this
             }
 
         }.onFailure {
@@ -35,19 +32,7 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
 
         }.getOrNull()
 
-    override fun delegate(cls: ClassWrapper<*>): IBinder? =
-        runCatching {
-            val service = cls.original.getConstructor().newInstance()
-            require(service is IService) { "${cls.original} is not IService" }
-
-            services.getOrPut(service.name) {
-                service.create(this@ServiceManagerImpl)
-            }
-
-        }.onFailure {
-            Log.e(TAG, Log.getStackTraceString(it))
-
-        }.getOrNull()
+    override fun getService(name: String): IBinder? = services[name]
 
     override fun destroy() {
         exitProcess(0)

@@ -4,5 +4,5 @@ import android.os.IBinder
 
 interface IService {
     val name: String
-    fun create(service: IServiceManager): IBinder
+    fun create(manager: IServiceManager): IBinder
 }

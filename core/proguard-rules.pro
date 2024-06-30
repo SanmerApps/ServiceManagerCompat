@@ -2,4 +2,4 @@
 -dontwarn android.os.SELinux
 -dontwarn android.os.ServiceManager
 
--keepclassmembers class * extends dev.sanmer.su.IService { public <init>(); }
+-keep,allowobfuscation class * extends dev.sanmer.su.IService { *; }
