@@ -6,7 +6,7 @@ import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-class Service<T: IService>(
+class Service<T : IService>(
     private val cls: Class<T>
 ) : Parcelable, IService {
     @IgnoredOnParcel

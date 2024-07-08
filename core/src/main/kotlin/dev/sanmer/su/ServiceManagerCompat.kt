@@ -201,13 +201,14 @@ object ServiceManagerCompat {
 
     suspend fun fromLibSu() = from(LibSuProvider.get())
 
-    fun setHiddenApiExemptions(vararg signaturePrefixes: String) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        HiddenApiBypass.addHiddenApiExemptions(*signaturePrefixes)
-    } else {
-        true
-    }
+    fun setHiddenApiExemptions(vararg signaturePrefixes: String) =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.addHiddenApiExemptions(*signaturePrefixes)
+        } else {
+            true
+        }
 
-    fun <T: IBinder> T.proxyBy(service: IServiceManager) = object : IBinder {
+    fun <T : IBinder> T.proxyBy(service: IServiceManager) = object : IBinder {
         override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
 
         override fun pingBinder() = this@proxyBy.pingBinder()
@@ -250,12 +251,12 @@ object ServiceManagerCompat {
         }
     }
 
-    fun <T: IInterface> T.proxyBy(service: IServiceManager) =
+    fun <T : IInterface> T.proxyBy(service: IServiceManager) =
         asBinder().proxyBy(service)
 
-    fun <T: IServiceManager> T.getSystemService(name: String) =
+    fun <T : IServiceManager> T.getSystemService(name: String) =
         ServiceManager.getService(name).proxyBy(this)
 
-    fun <T: IServiceManager, S: IService> T.addService(cls: Class<S>): IBinder? =
+    fun <T : IServiceManager, S : IService> T.addService(cls: Class<S>): IBinder? =
         addService(Service(cls))
 }
