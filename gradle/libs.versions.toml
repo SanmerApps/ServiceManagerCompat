@@ -1,5 +1,5 @@
 [versions]
-androidGradlePlugin = "8.5.0"
+androidGradlePlugin = "8.5.1"
 androidxAnnotation = "1.8.0"
 hiddenApiBypass = "4.3"
 hiddenApiRefine = "4.4.0"
