@@ -22,9 +22,6 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: true
-          gradle-home-cache-cleanup: true
 
       - name: Build with Gradle
         run: ./gradlew assembleRelease
