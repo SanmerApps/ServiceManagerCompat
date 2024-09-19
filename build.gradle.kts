@@ -9,12 +9,14 @@ task<Delete>("clean") {
 }
 
 subprojects {
+    val baseVersionName by extra("0.1.4")
+
     apply(plugin = "maven-publish")
     configure<PublishingExtension> {
         publications {
             all {
                 group = "dev.sanmer.su"
-                version = "0.1.3"
+                version = baseVersionName
             }
         }
 
