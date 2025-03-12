@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.parcelize) apply false
 }
 
-task<Delete>("clean") {
+tasks.register<Delete>("clean") {
     delete(layout.buildDirectory)
 }
 
