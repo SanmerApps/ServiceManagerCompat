@@ -4,7 +4,7 @@ androidxAnnotation = "1.9.1"
 hiddenApiBypass = "6.1"
 hiddenApiRefine = "4.4.0"
 kotlin = "2.1.20"
-kotlinxCoroutines = "1.10.1"
+kotlinxCoroutines = "1.10.2"
 libsu = "6.0.0"
 shizuku = "13.1.5"
 
