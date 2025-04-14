@@ -10,6 +10,9 @@ import android.os.IBinder
 import android.os.IInterface
 import android.os.Parcel
 import android.os.ServiceManager
+import com.rosan.dhizuku.api.Dhizuku
+import com.rosan.dhizuku.api.DhizukuRequestPermissionListener
+import com.rosan.dhizuku.api.DhizukuUserServiceArgs
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
 import kotlinx.coroutines.Dispatchers
@@ -184,6 +187,48 @@ object ServiceManagerCompat {
     }
 
     suspend fun fromShizuku() = from(ShizukuProvider(ContextCompat.getContext()))
+
+    class DhizukuProvider(
+        private val context: Context
+    ) : IProvider {
+        override val name = "Dhizuku"
+
+        override suspend fun isAvailable() = true
+
+        override suspend fun isAuthorized() = when {
+            isGranted -> true
+            else -> suspendCancellableCoroutine { continuation ->
+                val listener = object : DhizukuRequestPermissionListener() {
+                    override fun onRequestPermission(grantResult: Int) {
+                        continuation.resume(isGranted)
+                    }
+                }
+
+                Dhizuku.requestPermission(listener)
+            }
+        }
+
+        override fun bind(connection: ServiceConnection) {
+            Dhizuku.bindUserService(service, connection)
+        }
+
+        override fun unbind(connection: ServiceConnection) {
+            Dhizuku.unbindUserService(connection)
+        }
+
+        private val isGranted get() = Dhizuku.isPermissionGranted()
+
+        private val service by lazy {
+            DhizukuUserServiceArgs(
+                ComponentName(
+                    context.packageName,
+                    ServiceManagerImpl::class.java.name
+                )
+            )
+        }
+    }
+
+    suspend fun fromDhizuku() = from(DhizukuProvider(ContextCompat.getContext()))
 
     fun setHiddenApiExemptions(vararg signaturePrefixes: String) =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

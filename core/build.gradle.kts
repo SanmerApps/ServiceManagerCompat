@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.rikka.shizuku.api)
     implementation(libs.rikka.shizuku.provider)
 
+    implementation(libs.iamr0s.dhizuku.api)
+
     implementation(libs.androidx.annotation)
     implementation(libs.kotlinx.coroutines.android)
 }
