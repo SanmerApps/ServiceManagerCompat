@@ -193,7 +193,7 @@ object ServiceManagerCompat {
     ) : IProvider {
         override val name = "Dhizuku"
 
-        override suspend fun isAvailable() = true
+        override suspend fun isAvailable() = Dhizuku.init(context)
 
         override suspend fun isAuthorized() = when {
             isGranted -> true
