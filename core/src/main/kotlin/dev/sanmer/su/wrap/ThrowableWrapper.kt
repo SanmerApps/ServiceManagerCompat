@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 class ThrowableWrapper(
     val original: Throwable
 ) : Parcelable {
-    companion object {
+    companion object Default {
         fun Throwable.wrap() = ThrowableWrapper(this)
     }
 }

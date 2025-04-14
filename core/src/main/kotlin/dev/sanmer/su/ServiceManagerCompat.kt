@@ -25,7 +25,7 @@ import kotlin.coroutines.resumeWithException
 object ServiceManagerCompat {
     private const val TIMEOUT_MILLIS = 15_000L
 
-    internal const val BINDER_TRANSACTION = 23373801
+    internal const val BINDER_TRANSACTION = 84398154
 
     interface IProvider {
         val name: String
@@ -71,71 +71,7 @@ object ServiceManagerCompat {
         }
     }
 
-    class ShizukuProvider internal constructor(
-        private val context: Context
-    ) : IProvider {
-        override val name = "Shizuku"
-
-        override suspend fun isAvailable(): Boolean {
-            return Shizuku.pingBinder()
-        }
-
-        override suspend fun isAuthorized() = when {
-            isGranted -> true
-            else -> suspendCancellableCoroutine { continuation ->
-                val listener = object : Shizuku.OnRequestPermissionResultListener {
-                    override fun onRequestPermissionResult(
-                        requestCode: Int,
-                        grantResult: Int
-                    ) {
-                        Shizuku.removeRequestPermissionResultListener(this)
-                        continuation.resume(isGranted)
-                    }
-                }
-
-                Shizuku.addRequestPermissionResultListener(listener)
-                continuation.invokeOnCancellation {
-                    Shizuku.removeRequestPermissionResultListener(listener)
-                }
-                Shizuku.requestPermission(listener.hashCode())
-            }
-        }
-
-        override fun bind(connection: ServiceConnection) {
-            Shizuku.bindUserService(service, connection)
-        }
-
-        override fun unbind(connection: ServiceConnection) {
-            Shizuku.unbindUserService(service, connection, true)
-        }
-
-        private val isGranted get() = Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-
-        private val service by lazy {
-            Shizuku.UserServiceArgs(
-                ComponentName(
-                    context.packageName,
-                    ServiceManagerImpl::class.java.name
-                )
-            ).apply {
-                daemon(false)
-                debuggable(false)
-                processNameSuffix("shizuku")
-            }
-        }
-
-        companion object {
-            private val provider by lazy {
-                ShizukuProvider(ContextCompat.getContext())
-            }
-
-            fun get(): IProvider = provider
-        }
-    }
-
-    suspend fun fromShizuku() = from(ShizukuProvider.get())
-
-    class LibSuProvider internal constructor(
+    class LibSuProvider(
         private val context: Context
     ) : IProvider {
         override val name = "LibSu"
@@ -189,17 +125,65 @@ object ServiceManagerCompat {
                 return ServiceManagerImpl()
             }
         }
+    }
 
-        companion object {
-            private val provider by lazy {
-                LibSuProvider(ContextCompat.getContext())
+    suspend fun fromLibSu() = from(LibSuProvider(ContextCompat.getContext()))
+
+    class ShizukuProvider(
+        private val context: Context
+    ) : IProvider {
+        override val name = "Shizuku"
+
+        override suspend fun isAvailable(): Boolean {
+            return Shizuku.pingBinder()
+        }
+
+        override suspend fun isAuthorized() = when {
+            isGranted -> true
+            else -> suspendCancellableCoroutine { continuation ->
+                val listener = object : Shizuku.OnRequestPermissionResultListener {
+                    override fun onRequestPermissionResult(
+                        requestCode: Int,
+                        grantResult: Int
+                    ) {
+                        Shizuku.removeRequestPermissionResultListener(this)
+                        continuation.resume(isGranted)
+                    }
+                }
+
+                Shizuku.addRequestPermissionResultListener(listener)
+                continuation.invokeOnCancellation {
+                    Shizuku.removeRequestPermissionResultListener(listener)
+                }
+                Shizuku.requestPermission(listener.hashCode())
             }
+        }
 
-            fun get(): IProvider = provider
+        override fun bind(connection: ServiceConnection) {
+            Shizuku.bindUserService(service, connection)
+        }
+
+        override fun unbind(connection: ServiceConnection) {
+            Shizuku.unbindUserService(service, connection, true)
+        }
+
+        private val isGranted get() = Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+
+        private val service by lazy {
+            Shizuku.UserServiceArgs(
+                ComponentName(
+                    context.packageName,
+                    ServiceManagerImpl::class.java.name
+                )
+            ).apply {
+                daemon(false)
+                debuggable(false)
+                processNameSuffix("shizuku")
+            }
         }
     }
 
-    suspend fun fromLibSu() = from(LibSuProvider.get())
+    suspend fun fromShizuku() = from(ShizukuProvider(ContextCompat.getContext()))
 
     fun setHiddenApiExemptions(vararg signaturePrefixes: String) =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

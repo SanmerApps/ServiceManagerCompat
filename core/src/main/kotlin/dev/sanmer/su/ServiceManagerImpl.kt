@@ -61,7 +61,7 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
             super.onTransact(code, data, reply, flags)
         }
 
-    companion object {
-        private const val TAG = "ServiceManagerImpl"
+    private companion object Default {
+        const val TAG = "ServiceManagerImpl"
     }
 }
