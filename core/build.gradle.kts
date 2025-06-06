@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.self.library)
-    alias(libs.plugins.rikka.refine)
     alias(libs.plugins.kotlin.parcelize)
     `maven-publish`
 }
@@ -37,8 +36,6 @@ publishing {
 
 dependencies {
     compileOnly(projects.stub)
-    implementation(libs.hiddenApiBypass)
-    implementation(libs.rikka.refine.runtime)
 
     implementation(libs.libsu.core)
     implementation(libs.libsu.service)

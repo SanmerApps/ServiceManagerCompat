@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.IBinder
 import android.os.IInterface
 import android.os.Parcel
@@ -16,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
 import java.io.FileDescriptor
 import kotlin.coroutines.resume
@@ -184,13 +182,6 @@ object ServiceManagerCompat {
     }
 
     suspend fun fromShizuku() = from(ShizukuProvider(ContextCompat.getContext()))
-
-    fun setHiddenApiExemptions(vararg signaturePrefixes: String) =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            HiddenApiBypass.addHiddenApiExemptions(*signaturePrefixes)
-        } else {
-            true
-        }
 
     fun <T : IBinder> T.proxyBy(service: IServiceManager) = object : IBinder {
         override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
