@@ -23,20 +23,17 @@ internal class ServiceManagerImpl : IServiceManager.Stub() {
 
     override fun addService(service: Service<*>): IBinder? =
         runCatching {
-            service.create(this).apply {
-                services[service.name] = this
-            }
-
+            val obj = service.original
+            val binder = obj.create(this)
+            services[obj.name] = binder
+            binder
         }.onFailure {
             Log.e(TAG, Log.getStackTraceString(it))
-
         }.getOrNull()
 
-    override fun getService(name: String): IBinder? = services[name]
+    override fun getService(name: String): IBinder = services.getValue(name)
 
-    override fun destroy() {
-        exitProcess(0)
-    }
+    override fun destroy() = exitProcess(0)
 
     override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int) =
         if (code == ServiceManagerCompat.BINDER_TRANSACTION) {
