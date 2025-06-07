@@ -183,7 +183,7 @@ object ServiceManagerCompat {
 
     suspend fun fromShizuku() = from(ShizukuProvider(ContextCompat.getContext()))
 
-    fun <T : IBinder> T.proxyBy(service: IServiceManager) = object : IBinder {
+    fun <T : IBinder> T.proxyBy(ism: IServiceManager) = object : IBinder {
         override fun getInterfaceDescriptor() = this@proxyBy.interfaceDescriptor
 
         override fun pingBinder() = this@proxyBy.pingBinder()
@@ -205,7 +205,7 @@ object ServiceManagerCompat {
             this@proxyBy.unlinkToDeath(recipient, flags)
 
         override fun transact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
-            val serviceBinder = service.asBinder()
+            val ismBinder = ism.asBinder()
             val newData = Parcel.obtain()
 
             try {
@@ -217,7 +217,7 @@ object ServiceManagerCompat {
                     appendFrom(data, 0, data.dataSize())
                 }
 
-                serviceBinder.transact(BINDER_TRANSACTION, newData, reply, 0)
+                ismBinder.transact(BINDER_TRANSACTION, newData, reply, 0)
             } finally {
                 newData.recycle()
             }
@@ -226,12 +226,12 @@ object ServiceManagerCompat {
         }
     }
 
-    fun <T : IInterface> T.proxyBy(service: IServiceManager) =
-        asBinder().proxyBy(service)
+    fun <T : IInterface> T.proxyBy(ism: IServiceManager) =
+        asBinder().proxyBy(ism)
 
-    fun <T : IServiceManager> T.getSystemService(name: String) =
+    fun IServiceManager.getSystemService(name: String) =
         ServiceManager.getService(name).proxyBy(this)
 
-    fun <T : IServiceManager, S : IService> T.addService(cls: Class<S>): IBinder? =
-        addService(Service(cls))
+    inline fun <reified S : IService> IServiceManager.addService(): IBinder? =
+        addService(Service(S::class.java))
 }
