@@ -1,7 +1,7 @@
 [versions]
 androidGradlePlugin = "8.10.1"
 androidxAnnotation = "1.9.1"
-kotlin = "2.1.21"
+kotlin = "2.2.0"
 kotlinxCoroutines = "1.10.2"
 libsu = "6.0.0"
 shizuku = "13.1.5"
