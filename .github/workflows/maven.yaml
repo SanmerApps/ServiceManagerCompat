@@ -19,7 +19,7 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'jetbrains'
           java-version: 21
