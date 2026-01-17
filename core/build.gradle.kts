@@ -35,7 +35,7 @@ publishing {
 }
 
 dependencies {
-    compileOnly(projects.stub)
+    compileOnly(project(":stub"))
 
     implementation(libs.libsu.core)
     implementation(libs.libsu.service)

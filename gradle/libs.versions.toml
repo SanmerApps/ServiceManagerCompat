@@ -1,5 +1,5 @@
 [versions]
-androidGradlePlugin = "8.13.2"
+androidGradlePlugin = "9.0.0"
 androidxAnnotation = "1.9.1"
 kotlin = "2.3.0"
 kotlinxCoroutines = "1.10.2"
@@ -7,7 +7,7 @@ libsu = "6.0.0"
 shizuku = "13.1.5"
 
 [libraries]
-android-gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
+android-gradle = { module = "com.android.tools.build:gradle-api", version.ref = "androidGradlePlugin" }
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
@@ -21,5 +21,4 @@ rikka-shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = 
 self-library = { id = "self.library", version = "unspecified" }
 
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
